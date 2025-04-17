@@ -5,7 +5,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from config import SHOP_URL, API_VERSION, ACCESS_TOKEN, CREDENTIALS_FILE
 
-GOOGLE_SHEET_NAME = "Shopify Customer New"
+GOOGLE_SHEET_NAME = "Testing customer"
 LAST_ROW_TRACKING_CELL = "Z1"  # We'll store last processed ID here
 
 def get_gsheet_client():
@@ -52,7 +52,8 @@ def fetch_and_update_latest_customers():
 
             new_rows = []
             for customer in new_customers:
-                row = [str(customer.get(col, "")) for col in existing_headers]
+                # Ensure that customer ID is an integer (not a string)
+                row = [int(customer.get(col, "")) if col == "id" else str(customer.get(col, "")) for col in existing_headers]
                 new_rows.append(row)
 
             next_row_index = len(sheet.get_all_values()) + 1
@@ -67,9 +68,10 @@ def fetch_and_update_latest_customers():
         print(f"❌ Shopify API error {response.status_code}: {response.text}")
         return []
 
+    
 if __name__ == "__main__":
     print("⏳ Scheduler started. Waiting for the next run...")
-    schedule.every(1).minutes.do(lambda: fetch_and_update_latest_customers())
+    schedule.every(2).minutes.do(lambda: fetch_and_update_latest_customers())
     while True:
         schedule.run_pending()
         time.sleep(1)
